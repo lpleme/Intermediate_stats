@@ -1,0 +1,101 @@
+---
+title: "Project 2 Permutation Test"
+output: html_document
+---
+
+
+## Background
+
+We are using data for the soccer team Juventus and their data in serie A league. The data is for the current season.
+
+## Question & Hypothesis
+
+We did a linear regression test on the Juventus dataset a while back. Our linear regression was testing on target shot attempts converted into goals. We wanted to see whether there was a direct relationship between on target shot attempts and goals. With our regression test we found out that with every on target shot attempt, it would raise the odds of whether a goal would be scored. Now we want to perform a permutation test to see if the results we acheived are, in fact, true. Our null hypothesis will be written as such:
+
+
+$H_0$: Any pattern witnessed is due to complete chance
+
+
+## Analysis
+
+```{r setup, include=FALSE}
+library(car)
+library(tidyverse)
+library(readr)
+library(pander)
+library(DT)
+soccer <- read.csv("../Data/season-1819.csv")
+
+
+
+Juv <- soccer %>% 
+  subset(AwayTeam == "Juventus" | HomeTeam == "Juventus")
+
+Juv$HTHG <- as.numeric(Juv$HTHG)
+Juv$HTG <- as.numeric(Juv$HTHG)
+Juv$HTAG <- as.numeric(Juv$HTAG)
+Juv$HST <- as.numeric(Juv$HST)
+Juv$AST <- as.numeric(Juv$AST)
+Juv$OT <- Juv$HST + Juv$AST
+Juv$FTHG <- as.numeric(Juv$FTHG)
+Juv$FTAG <- as.numeric(Juv$FTAG)
+Juv$G <- Juv$HTHG + Juv$HTAG + Juv$FTHG + 
++     Juv$FTAG
+```
+
+```{r include=FALSE}
+#maybe add DT
+Juvlm <- lm
+Juvlm <- lm(OT ~ G, data = Juv)
+```
+
+
+```{r include=FALSE}
+# The test and then the test statistic is found in a similar way to that of an ANOVA (this is the t statistic)
+myTest <- lm(OT ~ G, data = Juv)
+observedTestStat <- summary(myTest)[[4]][2,3]
+
+# The permutation part is set up in this way
+N <- 2000
+permutedTestStats <- rep(NA, N)
+for (i in 1:N){
+  permutedData <- sample(Juv$OT)
+  permutedTest <- lm(permutedData ~ G, data = Juv)
+  permutedTestStats[i] <- summary(permutedTest)[[4]][2,3]
+}
+```
+
+```{r echo=FALSE}
+# Here, as before, is the histogram of the distribution of the test statistics
+hist(permutedTestStats, col = "skyblue")
+abline(v = observedTestStat, col = "red", lwd = 3)
+```
+
+
+Less-than p-value
+
+```{r echo=FALSE}
+# Less-than p-value:
+sum(permutedTestStats <= observedTestStat)/N
+```
+
+
+
+Greater-than p-value
+
+```{r echo=FALSE}
+# Greater-than p-value:
+sum(permutedTestStats >= observedTestStat)/N
+```
+
+
+Two-sided p-value
+
+```{r echo=FALSE}
+# Two-Sided p-value:
+2*sum(permutedTestStats >= observedTestStat)/N
+```
+
+## Interpretation
+
+With the test and data we are using, we will disregard the less-than and great-than p-value, but instead will look at the two-sided p-value. Our p-value is below 0.05 which is just less than our significant value, this means that we have sufficient evidence to reject the null. This means that the direct relationship that on target shot attempts have on goals achieved is not by chance. The data was not by chance and that we do in fact have a relationship between on target shot attempts and goals scored.

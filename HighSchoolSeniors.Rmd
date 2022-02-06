@@ -1,0 +1,147 @@
+---
+title: "High School Seniors t Test"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(DT)
+library(pander)
+library(readr)
+library(car)
+library(dplyr)
+library(mosaic)
+
+HSS <- read_csv("../Data/HighSchoolSeniors.csv")
+#Remember: select "Session, Set Working Directory, To Source File Location", and then play this R-chunk into your console to read the HSS data into R. 
+```
+
+<!-- Instructions
+
+1. Use the HSS dataset in R to come up with a question that can be answered with a t Test. 
+
+Here is a link to the survey given to the students that participated in the study:
+https://ww2.amstat.org/censusatschool/pdfs/C@SQuestionnaire.pdf
+(Use the link to learn about what each column of data in the data set represents.)
+
+2. Establish why your question is interesting and rephrase the question using a statistical "null" and "alternative" hypothesis. (Hint, see the "Math 325 Notebook -> R Help -> R-Markdown Hints" page of your textbook for instructions on how to write mathematical hypotheses.)
+
+3. Clearly answer your question using statistics. Be sure to compute a p-value and provide supporting numerical and graphical summaries.
+
+Note: you can create "groups" from the data in many ways. For example, suppose you wanted to create a variable that grouped people according to whether they thought recycling was more important than conserving water. You could do this by:
+
+```{r}
+HSS <- HSS %>%
+  mutate(recycling_than_water = ifelse(Importance_recycling_rubbish >	Importance_conserving_water, "Recycling More Important", "Water Conservation More Important"))
+```
+
+-->
+#### Background
+A survey was handed to a sample of High School seniors across America. This survery included question like sleeping hours, social media hours, and also quantitative data like a memory test scored in the amount of time it took for completition. The survey was conducted on both male and female seniors. We want to perform a test to see whether or not gender has a role within the mean of the score achieved on the memory test.
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Hide Data
+
+## Show Data
+
+
+```{r}
+datatable(HSS)
+```
+
+#
+
+It is assumed that the gender of the individual has no effect on the score of the memory test. To test this theory we will conduct an independent sample t-Test to find out the sample mean of the score achieved on the memory test subseted into gender.
+
+The null hypothesis and alternative hypothesis will be written as:
+
+$$
+  H_0: \mu_\text{Male Memory Test Score} - \mu_\text{Female Memory Test Score} = 0
+$$
+
+$$
+  H_a: \mu_\text{Female Memory Test Score} - \mu_\text{Female Memory Test Score} \neq 0
+$$
+Our significance level for this experiment will be set at: 
+$$
+  \alpha = 0.05
+$$
+
+
+```{r}
+library(car)
+Fem <- subset(HSS, Gender == "Female" & Reaction_time)
+Male <- subset(HSS, Gender == "Male" & Reaction_time)
+
+FemS <- Fem %>%
+  sample_n(30)
+MaleS <- Male %>% 
+  sample_n(30)
+```
+
+#### Analysis
+
+The strip chart below shows that the Female and Male scores were on par with eachother throughout the sample population. We can also see in our five number chart below the strip chart, the means of the female and male groups were only seperated by .14 seconds.
+
+
+```{r}
+stripchart(Score_in_memory_game ~ Gender, data=HSS, pch=16, col=c("skyblue","firebrick"), 
+             vertical = TRUE, xlim=c(0.5,2.5), xlab="Gender", 
+             ylab="Reaction Time", main="Memory Test Scores Between Genders")
+abline(h=0, lty=2, col="gray")
+reactionmeans <- mean(Score_in_memory_game ~ Gender, data=HSS)
+lines(reactionmeans ~ c(1,2), lty=2, lwd=2, col="darkgray")
+points(reactionmeans ~ c(1,2), pch=3, cex=2, col=c("skyblue","firebrick"))
+legend("topleft", bty="n", pch=3, col=c("skyblue","firebrick"), title="Gender", legend=c("Female", "Male"))
+```
+
+```{r}
+pander(t.test(Score_in_memory_game ~ Gender, data = HSS, mu = 0, alternative = "two.sided", conf.level = 0.95), caption="Independent Sample t-Test: Score in Memory Game Based on Gender", split.table=Inf)
+```
+
+There is insufficient evidence to reject the null hypothesis ($p = 0.9228 > \alpha$).
+
+# {.tabset .tabset-fade .tabset-pills}
+
+## Hide Q-Q Plots
+
+## Show Q-Q Plots
+
+```{r}
+par(mfrow=c(1,1))
+
+qqPlot(Male$Score_in_memory_game, ylab = "Male Memory Test Score")
+
+qqPlot(Fem$Score_in_memory_game, ylab = "Female Memory Test Score")
+```
+
+#
+
+With the Q-Q plot's above we can see that the data is to be considered normal. We can safely assume that $\bar{x}_1 - \bar{x}_2$ is normally distributed. This should be known since we started with a big sample population.
+
+
+#### Interpretation
+Our results show that on average the females score better on the memory test with a lower time taken to complete it (44.76 seconds) while the males took a longer amount of time (44.9 seconds). Given our P-value and our signifance level, we have insufficient evidence to reject the null hypothesis, that females and males score differntly on average.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

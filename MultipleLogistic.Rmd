@@ -1,0 +1,178 @@
+---
+title: "MultipleLogistic"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(mosaic)
+library(ResourceSelection)
+library(car)
+library(tidyverse)
+library(readr)
+library(pander)
+library(DT)
+
+
+GSS <- read.table("../Data/GSS2012.csv", sep="\t", header=TRUE)
+```
+
+## Background
+
+We were given a dataset from 1972 to 2012 via a social survey. This dataset contains hundreds of surverys with almost 2,000 participants.
+
+Credit:
+
+Each column name in the `GSS` dataset corresponds to a variable name in the General Social Survey. All variable names can be browsed in the [2012 General Social Survey Browser](http://sda.berkeley.edu/sdaweb/analysis/?dataset=gss12).
+
+## Hypothesis & Questions
+
+Did your mother start a job right after you were born? Did you want to know if she loved seeing you grow up or was too invovled with work? Then I got the question for you! The question that I want to explore is if you think seeing kids grow up is the best joy in life, is the mother more or less likely to go to work after the child is born? We will be using age as a covariable because age could affect the joy factor towards kids growing up.
+
+$$
+  P(Y_i = 1|\, x_{i1},x_{i2},x_{i3},x_{i4},x_{i5},x_{i6}) = \frac{e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \beta_5 x_{i5} + \beta_6 x_{i6}}}{1+e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \beta_5 x_{i5}}} = \pi_i
+$$
+These are what the variables are equal to:
+
+
+| Variable | Value | Explanation |
+|----------|-------|-------------|
+| $x_{i1}$ | 18 to 88 | the age of the individual |
+| $x_{i2}$ | `Joy == 1` | Strongely agree that kids are the greatest joy |
+| $x_{i3}$ | `Joy == 2` | Agree that kids are the greatest joy |
+| $x_{i4}$ | `Joy == 3` | Neither agree or disagree that kids are the greatest joy |
+| $x_{i5}$ | `Joy == 4` | Disagree that kids are the greatest joy |
+| $x_{i6}$ | `Joy == 5` | Strongely disagree that kids are the greatest joy |
+
+We will look at this data with another set. This dataset will be if their mothers worked right after they were born. $Y_i=1$ will represent their mothers *not* working after they were born. $Y_i=0$ will represent their mothers working after they were born.
+
+The null and alternative hypothesis will be as follows:
+
+$$
+  H_0: \beta_0 = 0 \\
+  H_a: \beta_0 \neq 0
+$$
+$$
+  H_0: \beta_2 = 0 \\
+  H_a: \beta_2 \neq 0
+$$
+$$
+  H_0: \beta_3 = 0 \\
+  H_a: \beta_3 \neq 0
+$$
+$$
+  H_0: \beta_4 = 0 \\
+  H_a: \beta_4 \neq 0
+$$
+$$
+  H_0: \beta_5 = 0 \\
+  H_a: \beta_5 \neq 0
+$$
+We're dealing with both the working mothers and joy of kids data. Lets take a loof the the working mothers data below:
+
+| Response | Meaning |
+|----------|---------|
+| 1 | Yes |
+| 2 | No |
+| 3 | Didn't live with mother |
+| 0 | IAP, question is inapplicable to this person for some reason. |
+| 8 | DK, don't know |
+| 9 | NA |
+
+```{r echo=FALSE}
+barplot(table(GSS$mawork), xlab = "Mother Working", col = c("gray", "skyblue", "skyblue", "gray", "gray", "gray"))
+```
+
+We can see from the bar plot that a majority of the participants had their mother go back to work after they were born. There were very few participants that didn't live with their mothers. We will be focusing on column one and two; Yes they lived with their mothers or no they didn't live with their mothers.
+
+Now lets look at the data for if people agreed that watching kids grow up is the biggest joy in life.
+
+| Response | Meaning |
+|----------|---------|
+| 1 | Strongly agree |
+| 2 | Agree |
+| 3 | Do not agree nor disagree |
+| 4 | Disagree |
+| 5 | Strongly disagree |
+| 6 | Never |
+| 0 | IAP, question is inapplicable to this person for some reason. |
+| 8 | DK, don't know |
+| 9 | NA |
+
+```{r echo=FALSE}
+barplot(table(GSS$kidjoy), xlab = "Joy", col = c("gray", "skyblue", "skyblue", "skyblue", "skyblue", "skyblue", "gray", "gray"))
+```
+
+According to the bar plot above a majority of the participants, that voted in our parameters, voted more towards the agreeing side, whether it be strongly agree or just agree. For the data we are focusing on 1 (strongly agree), 2 (agree), 3 (do not agree nor disagree), 4 (disagree), 5 (strongly disagree).
+
+Finally this is our age range of the participants:
+
+```{r echo=FALSE}
+hist(GSS$age, xlab = "Age", col = "skyblue")
+```
+
+
+
+
+
+kidjoy - Kids are lifes greatest joy
+mawork14 - Did mom work after you were born
+age - Age of respondents
+
+## Data Analysis
+
+```{r include=FALSE}
+GSSk <- GSS[,c("kidjoy", "mawork14", "age")]
+GSSk <- subset(GSSk, kidjoy %in% 1:5)
+dim(GSSk)
+GSSk <- subset(GSSk, mawork14 %in% c(1,2))
+dim(GSSk)
+GSSk <- subset(GSSk, age <= 89)
+dim(GSSk)
+GSSk$kidjoy <- as.factor(GSSk$kidjoy)
+```
+
+This is our multiple logistic regression:
+
+```{r echo=FALSE}
+GSSk.glm <- glm((mawork14 == 2) ~ age + kidjoy, data = GSSk, family = binomial)
+pander(summary(GSSk.glm))
+```
+
+
+
+___
+Deviance Goodness of Fit Test
+
+```{r echo=FALSE}
+pander(pchisq(1387, 1217, lower.tail = FALSE))
+```
+
+## Graphic
+
+```{r echo=FALSE}
+plot(mawork14 == 2 ~ age, data=GSSk, pch=16, cex=0.5, xlim=c(18,110))
+
+curve(exp(-2.909156 + 0.043779*x)/(1 + exp(-9.189e-01 + 0.043779*x)), from=18, to=88, add = TRUE, col = "firebrick")
+
+curve(exp(-2.909156-0.071381 + 0.043779*x)/(1 + exp(-2.909156-0.071381 + 0.043779*x)), from=18, to=88, add = TRUE, col = "skyblue")
+
+curve(exp(-2.909156+0.181552 + 0.043779*x)/(1 + exp(-2.909156+0.181552 + 0.043779*x)), from=18, to=88, add = TRUE, col = "skyblue3")
+
+curve(exp(-2.909156-0.570277 + 0.043779*x)/(1 + exp(-2.909156-0.570277 + 0.043779*x)), from=18, to=88, add = TRUE, col = "orchid")
+
+curve(exp(-2.909156-0.371209 + 0.043779*x)/(1 + exp(-2.909156-0.371209 + 0.043779*x)), from=18, to=88, add = TRUE, col = "wheat3")
+
+legend("bottomright", legend=paste("Joy =", 1:5), col=c("firebrick","skyblue","skyblue3","orchid","wheat3"), lty=1)
+```
+
+## Interpretation
+
+We performed a deviance goodness of fit test because there were many repeated x values.
+
+If we look at our intercepts for our logistic regression we can see that age has an intercept of 0.04378, or mathmatically written as $e^{0.04378} = `r exp(0.04378)`$. This means that with each year of age, the odds are multiplied by 1.0447525. If we look at the graphic we can solidify our findings. No matter the joy factor, the odds increase as the age increases. We used age as a factor in our logistic regression, because is makes sense that as age increases the odds are increased, this made for a good covaritive. 
+
+If we look at joy 2, agree that kids growing up is the best joy, we see that $e^{0.1816} = `r exp(0.1816)`$. This means that for every year increase in age, the odds of the joy factor being agreeable is multipled by 1.1991344. This seems pretty logical.
+
+Lets look at joy 4, disagree that kids growing up is the best joy, we see that $e^{-0.5703} = `r exp(-0.5703)`$. This means that for every year increase in age, the odds of the joy factor are decreased by a multiple of 0.5653558.
+
+We can conclude that we have sufficient evidence to support that the more joy you take in kids growing up, the less likely the mother is to work right after their child is born.

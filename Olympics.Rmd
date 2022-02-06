@@ -1,0 +1,140 @@
+---
+title: "The Olympics"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+**Week 2 Analysis**
+
+```{r, include=FALSE}
+library(mosaic)
+library(pander)
+library(DT)
+library(readr)
+library(tidyverse)
+library(dplyr)
+library(plyr)
+library(ggplot2)
+Olympics <- read.csv("../Data/Olympics.csv", header=TRUE)
+```
+
+```{r include=FALSE}
+OlympicsWinter <- Olympics %>% 
+  filter(Season == "Winter")
+
+OlympicsSummer <- Olympics %>%
+  filter(Season == "Summer")
+
+OlympicsWinterMedal <- OlympicsWinter %>% 
+  filter(Medal != "NA")
+
+OlympicsSummerMedal <- OlympicsSummer %>% 
+  filter(Medal != "NA")
+
+OlympicsSummerMedalGold <- OlympicsSummerMedal %>% 
+  filter(Medal == "Gold")
+
+OlympicsSummerMedalSilver <- OlympicsSummerMedal %>% 
+  filter(Medal == "Silver")
+
+OlympicsSummerMedalSilver <- OlympicsSummerMedal %>% 
+  filter(Medal == "Bronze")
+
+OlympicsWinterMedalGold <- OlympicsWinterMedal %>% 
+  filter(Medal == "Gold")
+
+OlympicsWinterMedalSilver <- OlympicsWinterMedal %>% 
+  filter(Medal == "Silver")
+
+OlympicsWinterMedalBronze <- OlympicsWinterMedal %>% 
+  filter(Medal == "Bronze")
+
+OlympicsSummerFemaleMedal <- OlympicsSummerMedal %>% 
+  filter(Sex == "F", Medal != "NA")
+
+OlympicsSummerMaleMedal <- OlympicsSummerMedal %>% 
+  filter(Sex == "M", Medal != "NA")
+
+OlympicsWinterFemaleMedal <- OlympicsWinterMedal %>% 
+  filter(Sex == "F", Medal != "NA")
+
+OlympicsWinterMaleMedal <- OlympicsWinterMedal %>% 
+  filter(Sex == "M", Medal != "NA")
+```
+
+
+<br />
+
+## Background
+
+We are given the data for all the Olympics, summer and winter, that took place between the years of 1898 and 2016. I want to find out if age is a factor in whether or not they can achieve a medal. If so does that also apply to both females and males, or does the outperforming age differ in the sex of the individual? I predict that younger males will produce more medals than younger females.
+
+
+
+```{r, warning=FALSE}
+# Code to get you started. 
+# Only the first 100 observations are shown here because the dataset is really too big to show all of it in a markdown file.
+datatable(head(Olympics,100), options=list(lengthMenu = c(3,10,30)), extensions="Responsive")
+```
+
+
+## Analysis
+
+First we have to look at only the individuals that achieved a medal, no matter if it was bronze or gold. For readability issues the data was divided into two groups initially, the Winter Olympics and the Summer Olympics.
+
+```{r}
+hist(OlympicsSummerMedal$Age, col = "skyblue", xlab = "Age", main = "Frequency of Medals Based on Age (Summer Olympics)")
+
+outputTable <- rbind(Age=favstats(OlympicsSummerMedal$Age))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="Medals Based on Age for the Summer Olympics")
+
+hist(OlympicsWinterMedal$Age, col = "skyblue", xlab = "Age", main = "Frequency of Medals Based on Age (Winter Olympics)")
+
+outputTable <- rbind(Age=favstats(OlympicsWinterMedal$Age))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="Medals Based on Age for the Winter Olympics")
+```
+
+From this data we can see that a majority of the data falls inbetween the age of 20 to 30 for both the Summer and Winter Olympics. We have a median difference of less than a quarter of a year in age. Lets see if the sex of the individual also affects the medals achieved with the age. Are younger females more feasible to achieve medals as opposed to younger males?
+
+
+### Summer Olympics with Gender Subset
+
+```{r}
+hist(OlympicsSummerFemaleMedal$Age, col = "hotpink", xlab = "Age", main = "Frequency of Medals in Females Based on Age (Summer Olympics")
+
+outputTable <- rbind(Age=favstats(OlympicsSummerFemaleMedal$Age))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="Medals Based on Age for Females in the Summer Olympics")
+
+hist(OlympicsSummerMaleMedal$Age, col = "skyblue", xlab = "Age", main = "Frequency of Medals in Males Based on Age (Summer Olympics")
+
+outputTable <- rbind(Age=favstats(OlympicsSummerMaleMedal$Age))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="Medals Based on Age for Males in the Summer Olympics")
+```
+
+From the histograms above we don't see a major difference in the age and medal correlation. But, when we take look at the difference of means we can actually see that from females to males there's an age difference of a little over two years. This means that within the Summer Olympics more younger femals achieved a medal than younger males.
+
+### Winter Olympics with Gender Subset
+
+```{r}
+hist(OlympicsWinterFemaleMedal$Age, col = "hotpink", xlab = "Age", main = "Frequency of Medals in Females Based on Age (Winter Olympics)")
+
+outputTable <- rbind(Age=favstats(OlympicsWinterFemaleMedal$Age))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="Medals Based on Age for Females in the Winter Olympics")
+
+hist(OlympicsWinterMaleMedal$Age, col = "skyblue", xlab = "Age", main = "Frequency of Medals in Males Based on Age (Winter Olympics)")
+
+outputTable <- rbind(Age=favstats(OlympicsSummerMaleMedal$Age))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="Medals Based on Age for Males in the Winter Olympics")
+```
+
+From the histograms above we can see that a lot more males participated in the Winter Olympics than Females, with a difference of 22,131 participants. According to the data, looking at the mean, females have a younger age that achieve medals. There's a difference in the mean a little over one year. Thats a little less than the difference in age that we saw in the Summer Olympics.
+
+## Interpretation
+
+From our data we can see that most of the medals achieved in both Olympic seasons, winter and summer, fall within the age of 20 to 30 years old. When we look closer at the data it's evident that younger females out perform younger males. The females that produced medals throughout the games always had a younger age mean than the males with the difference of one to two years. My hypothesis of younger males out performing younger females was false.
+
+[^1]: Note that Stephanie is a fictional character who is based on real experiences of many faculty and staff here at BYU-Idaho.

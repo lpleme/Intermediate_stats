@@ -1,0 +1,123 @@
+---
+title: "Chocolate"
+output: 
+  html_document:
+    theme: cosmo
+    code_folding: hide
+---
+
+```{r, include=FALSE}
+# Be sure to use your file menus at the top of R-Studio to:
+# "Session -> Set working directory -> To source file location"
+# Then play this chunk and the next one to get the data into R.
+library(mosaic)
+library(car)
+library(DT)
+library(pander)
+library(readr)
+choc <- read_csv("../Data/Chocolate.csv")
+```
+
+```{r, eval=FALSE}
+View(choc)
+```
+
+----
+
+<!-- Instructions:
+
+ Use the Chocolate dataset and a Kruskal-Wallis Test(s) to answer an interesting question(s) that you come up with.
+ 
+ About the dataset:
+ 
+  * Company: Name of the company manufacturing the bar.
+
+  * Orig: The specific geo-region of origin for the bar.
+
+  * Review: Date of publication of the review.
+
+  * Cocoa: Cocoa percentage (darkness) of the chocolate bar being reviewed.
+
+  * Location: Manufacturer base country.
+
+  * Rating: Expert rating for the bar.
+      5= Elite (Transcending beyond the ordinary limits)
+      4= Premium (Superior flavor development, character and style)
+      3= Satisfactory(3.0) to praiseworthy(3.75) (well made with special qualities)
+      2= Disappointing (Passable but contains at least one significant flaw)
+      1= Unpleasant (mostly unpalatable)
+
+   * Type: The variety (breed) of cocoa bean used, if provided.
+   
+   * BroadOrig: The broad geo-region of origin for the bean.
+
+Note this dataset and description come from: © 2018 Kaggle Inc for further details visit:
+
+[Kaggle.com](https://www.kaggle.com/rtatman/chocolate-bar-ratings/data)
+
+
+If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+**Comments to Critiquers:** 
+
+
+
+<!--End your comments to your critiquers before this line.-->
+
+----
+
+<!--Begin writing your Analysis after this point.-->
+
+## Background
+We were presented a dataset that housed everything you'd want to know know about chocolate companies, from the expert rating to the origin of the chocolate bar. I want to look at the ratings that were given every year. Were the rating from year to year given the same population, or was at least one year different?
+Our null hypothesis will be written as such:
+
+
+$$
+  H_0: \mu_1 = \mu_2 = \ldots = \mu
+$$
+Our alternative hypothesis is assuming that at least one set comes from a different population set. It'll be written as such:
+$$
+  H_a: \mu_i \neq \mu \ \text{for at least one} \ i
+$$
+
+
+## Analysis
+
+```{r}
+boxplot(Rating ~ Review, data = choc, col = "Brown", xlab = "Year", ylab = "Rating", main = "Ratings Given Year to Year (2006-2017)")
+```
+
+This boxplot allows us the compare all of the review years side by side. We can see from the graph that we had population variance in 2006, 2007, and 2017. To be sure of our results we'll perform a Kruskal-Wallis rank sum test between the rating and review.
+
+
+```{r}
+pander(kruskal.test(Rating ~ Review, data = choc))
+
+pander(favstats(Rating ~ Review, data = choc))
+```
+
+From the Kruskal-Wallis rank sum test there is sufficient evidence to reject the null hypothesis and go with our alternative since the $p = 0.0007687$.
+
+## Side Project
+
+According to chocolate connoisseur's, chocolate's considered to be dark if it has more than 70% cocao anything lower is considered milk chocolate. Lets see if theres a difference in ratings between dark and milk chocolate.
+
+```{r}
+choc2 <- choc %>% 
+  subset(Cocao < "70%")
+choc3 <- choc %>% 
+  subset(Cocao > "70%")
+
+boxplot(choc2$Rating, xlab = "Milk Chocolate", ylab= "Rating", main = "The Rating of Milk Chocolate (<70% Cocao)", col = "tan3")
+pander(favstats(choc2$Rating))
+
+boxplot(choc3$Rating, xlab= "Dark Chocolate", ylab= "Rating", main = "The Rating of Dark Chocolate (>70% Cocao)", col = "tan4")
+pander(favstats(choc3$Rating))
+```
+
+From our boxplots and also our summary table, we can see that there was no difference in ratings between milk chocolate and dark chocolate.
+
+## Interpretation
+
+Given the P-Value of our Kruskal-Wallis test we can safely assume our alternative hypothesis, that we were given different populations from year to year when measuring the rating, is true. We can also solidify our results by looking at our summary chart. We see that the populations are all over the place. There might have been less chocolate companies to review from year to year, or maybe they didn't make a bar in time for a review that year. We can also see from our side project that there's no difference between milk chocolate and dark chocolate. They were both rated the same, which could mean that the reviewers didn't mind the difference or just that the general population doesn't mind. They do say that dark chocolate is a healthier option for you!
+

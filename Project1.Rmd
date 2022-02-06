@@ -1,0 +1,78 @@
+---
+title: "Cycling- Linear Regression"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Load your libraries
+library(car)
+library(tidyverse)
+library(readr)
+library(pander)
+library(DT)
+cycle <- read.csv("../Data/training.csv")
+```
+## Data
+
+All data compiled from a cycling computer from September 2016 to Janurary 2019.
+```{r echo=FALSE}
+datatable(cycle)
+```
+
+## Background
+
+The data that I gained access to is from my brothers onboard cycling computer. This is measuring stats for every ride he's taken since 2016 all the way to 2019. I think this is great data to anaylize fro cycling because it's data from a semi-pro who is out on their bike almost everyday for multiple hours. I want to see whether or not the average speed is dictated by the distance that will be traveled for that session.
+
+## Analysis
+We're trying to figure out whether the average speed of the athlete can predict the distance that will be traveled by them.
+
+$$
+  \underbrace{Y_i}_\text{Distance} = \beta_0 + \beta_1 \underbrace{X_i}_\text{Average Speed} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2) 
+$$
+
+Our null and alternative hypothesis will be written as such:
+$$
+H_0: \beta_1 = 0
+$$
+
+$$
+ H_a: \beta_1 \neq 0
+$$
+
+```{r echo=FALSE}
+cycle1 <- cycle %>% 
+  filter(Average.Speed > 10 | Distance > 50)
+```
+
+```{r echo=FALSE}
+cycle.lm <- lm(Average.Speed ~ Distance, data = cycle1)
+```
+
+```{r echo=FALSE}
+plot(Average.Speed ~ Distance, pch=1, col = "orange", main = "Cycling Speed & Distance", data = cycle1)
+abline(cycle.lm)
+```
+
+The plot above has a trendline that shows us the general trend of less average speed equates to more distance. This theoretically makes sense since you generally tend to keep a lower average speed in order to exceed a longer distance. To look more indepth for our chart, lets look at the summary for our linear regression.
+
+```{r echo=FALSE}
+pander(summary(cycle.lm))
+```
+
+In order to verifiy our data we must look at the assumptions. This will tell us whether or not the data we are using is up to par for a linear regression.
+
+## Assumptions
+```{r echo=FALSE}
+par(mfrow=c(1,3))
+plot(cycle.lm, which=1:2)
+plot(cycle.lm$residuals)
+```
+According to the assumptions we can see that our data was not the best that we could've used. The residual plot shows us that there's an unconstant variance between the data points. The Q-Q plot shows us that the data is somewhat skewed to the right. Finally, the index plot shows us that the data already has a general trend.
+
+## Interpretation
+
+Since $p = 5.106e-06$ we have sufficient evidence to reject the null. Based on the assumptions we can see that the data clearly wasn't the best choice to use for this question, because of its inconsistency. This might be because of unknown variables like wind, elevation, or even injury. some of the data could also be nullified because the computer may not have been turned off right after the workout, or turned on when the workout started.

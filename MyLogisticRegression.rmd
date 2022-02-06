@@ -1,0 +1,83 @@
+---
+title: "My Simple Logistic Regression"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+<!-- Find some data of interest to you that can be analyzed with a logistic regression. Complete your Logistic Regression Analysis using this file. 
+
+Hint, run the command 
+
+> data() 
+
+in your Console to see available datasets in R that you could use for this Analysis. You are also welcome to collect data yourself, or find other available datasets online for this Analysis. Just be careful to not use anyone else's "analysis" for this Analysis. Also, no conducting surveys unless you have IRB approval to do so. -->
+
+```{r, include=FALSE}
+library(mosaic)
+library(ResourceSelection)
+library(car)
+library(tidyverse)
+library(readr)
+library(pander)
+library(DT)
+Ad <- read.csv("../Data/advertising.csv")
+
+#SOURCE
+#https://www.kaggle.com/fayomi/advertising
+```
+
+
+```{r}
+Ad.lm <- glm(Clicked.on.Ad == "0" ~ Daily.Time.Spent.on.Site, data = Ad, family = "binomial")
+```
+## Background
+A study was conducted on marketing strategies of advertisments within websites. Everything from time spent on the website to area income was collected. For our purposes, we're going to look at the time spent on the website and whether or not the advertisment on screen was clicked on.
+
+```{r}
+datatable(Ad)
+```
+
+$$
+  P(Y_i = 1|x_i) = \frac{e^{\beta_0+\beta_1 x_i}}{1+e^{\beta_0 + \beta_1 x_i}} = \pi_i
+$$
+
+$Y_i = 0$ Will represent the ad being clicked on
+
+$Y_i = 1$ Will represent the ad not being clicked on
+
+$x_i$ Will represent the time spent on the website
+
+Our null and alternative hypothesis will be written as:
+
+$$
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \neq 0
+$$
+
+
+## Analysis
+```{r}
+plot(Clicked.on.Ad == "0" ~ Daily.Time.Spent.on.Site, data = Ad, pch = 16, col = ifelse(Clicked.on.Ad == "0", "blue", "pink"), xlab = "Daily Time Spent on Site", ylab = "Odds of Clicking the Ad", main = "Time Spent on Websites Before Clicking on an Ad")
+curve(exp(-12.5399+0.1874*x)/(1+exp(-12.5399+0.1874*x)), add = TRUE)
+legend(32, 1, legend=c("Clicked", "Did not Click"), col=c("blue", "pink"), lty=1:2, cex=0.8)
+```
+
+This plot shows us the odds of clicking, or not clicking, on the ad dependings on how long you spend on a website with that ad present.
+
+```{r}
+pander(summary(Ad.lm))
+```
+
+## Hosmer-Lemeshow Goodness of Fit Test
+
+Since we only have some repeated x values the hosmer-Lemeshow goodness fit test is appropriate to test the fit of the data.
+
+```{r}
+pander(hoslem.test(Ad.lm$y, Ad.lm$fitted, g=7))
+```
+
+## Interpretation
+
+Since the P-Value is significantly small we have sufficient evidence to reject the null hypothesis. Since $e^{b_1} = e^{0.1874} \approx 1.21$, that means that with each minute spent on a website will increase our odds of clicking on the ad that is present on the website.

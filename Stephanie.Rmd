@@ -1,0 +1,105 @@
+---
+title: "Stephanie's Housing Request"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+
+**Week 1 Analysis**
+
+```{r, include=FALSE}
+library(pander)
+library(plotly)
+library(mosaic)
+library(DT) # If you get an error stating: 
+            # Error in library(DT): there is no package called 'DT'
+            # You will need to run: install.packages("DT") 
+            # in your Console, then try "Knit HTML" again.
+Rent <- read.csv("../Data/Rent.csv", header=TRUE)
+```
+
+<br />
+
+## Background
+
+Stephanie[^1] is a student that will be starting school at BYU-Idaho next semester. Suppose she sent you the following email.
+
+----
+
+"Hi. My name is Stephanie. I would like to learn about what housing options I have for living at BYU-Idaho next semester. It will be my first semester there, so I would like to find something that is close to campus and around $300 a month in rent. I'm not too picky on roomates, but I would like somewhere that has a lot of people around so I can get to know as many people as possible. Thanks in advance!"
+
+----
+
+<!-- Write your response to Stephanie below. Use the "Rent" dataset, good statistical analysis, and clear writing to make some well supported suggestions to her about apartments that meet her stated criterions. You are free to use other criterion that you think she might find more meaningful as well. -->
+## Hypothesis
+
+I believe that the closer the apartment is to campus, the more expensive it'll be. Not only will it be expensive by have a low capacity number comparitive to all the other female apartments.
+
+## Response
+
+Dear Stephanie,
+
+After considering all your requests and analyzing them I can safely recommend that you house with Birch Plaza. Not only are the semester contracts only $\$980$ (that comes out to $\$245$ per month) for both standard and private rooms, but it's also only a one minute walk to campus and has a capacity of 343 people. This means that you wil be able to save money, spend less time commuting to campus, and meet a lot of people at the same time. You even have the opportunity of bringing a car since it has  160 parking stalls available. This apartment complex meets all your needs, plus more, and will be perfect for you! Below is all the data reflective to the parameters you gave me. You'll understand exactly why I chose Birch Plaza for you.
+
+
+<!-- Hint, you should probably subset the Rent dataset to only show the "Approved Women's Housing" since Stephanie won't be interested in Male Housing options. Notice how this text in green doesn't show up in the HTML output because we used the HTML comment tags around this text. --> 
+
+```{r include=FALSE}
+RentSubset <- Rent %>% 
+  filter(WalkingMinutes < 10, Gender == "F", Price <= 1200, PrivateRoomPrice <= 1200)
+```
+
+
+
+The data table below displays all of the apartments available within a 10 minute walk and also under a $1200 semester contract for both the standard rooms and the private rooms.
+
+```{r}
+# Code to get you started, be sure to use a subset of Rent instead of Rent in this code though.
+datatable(RentSubset, options=list(lengthMenu = c(3,10,30)), extensions="Responsive")
+```
+
+## Analysis
+The histogram below shows the amount of apartments that are within the minimum price of $\$850$, all the way to $\$1150$. The histogram shows that a vast majority of the apartments are located within you parameters are under $\$1000$. The graph is also filtered to show only the apartments within your parameters. Birch Plaza sits right below the median with a price of $\$980$.
+
+```{r}
+hist(RentSubset$Price, xlab = "Rent (USD)", main = "Pricing of Housing Within a 10 Minute Walk", col = "skyblue")
+```
+
+The table below shows that the standard vs the private rooms differ from $\$10$ to $\$70$. It also shows that, from the filtered data we're using, the average price is about $\$1000$, which is well under your budget.
+
+```{r}
+outputTable <- rbind(`Standard Price`=favstats(RentSubset$Price), `Private Room Price`=favstats(RentSubset$PrivateRoomPrice))
+pander(outputTable[c("min","Q1","median","mean","Q3","max","n")], caption="BYU-Idaho Semester Rental Contract Price Summary for both Standard Room and Private Room")
+```
+
+
+The plot below shows that the distance from campus has no effect on the price of the apartment. A vast majority of them fall within .25 miles from the campus, and many are inexpensive, all fitting your parameters. For example, Birch Plaza falls right above .06 miles to campus. It shows the lowest distance with three other apartments yet offers cheaper prices.
+
+```{r}
+plot_ly(RentSubset) %>% 
+  add_markers(y= ~Price, x= ~MilesToCampus, text= ~Apartment) %>% 
+  layout(title="BYU-Idaho Housing Price Comparitive to Distance", xaxis=list(title="Distance to Campus (Miles)"), yaxis=list(title="Semester Basic Contract Prices (USD)"))
+```
+
+
+The plot below shows the capacity of each apartment comparitive to its basic semester contract price. You asked to be around a lot of people as to make more friends, that's why we need the graphic below. It's shown that a large capacity apartment has an average price around $\$1000$. There's no apparant relationship between the price and the capacity of the apartments. Birch Plaza sits right at the end of the data with a capacity of 343, that the largest apatment that's offered. You get the largest apartment for a price lower than the median, and less than a tenth of a mile from campus.
+
+
+```{r}
+plot_ly(RentSubset) %>% 
+  add_markers(y= ~Price, x= ~Capacity, text= ~Apartment) %>% 
+  layout(title="BYU-Idaho Housing Price Comparitive to the \n Capacity of the Apartment", xaxis=list(title="Capacity of the Apartment"), yaxis=list(title="Semester Basic Contract Prices (USD)"))
+```
+
+## Result
+
+I was wrong in my original hypothesis. We were able to find an apartment that was not only close to campus for under the mean price. We were also able to find one with all those parameters plus the largest capacity offered between the apartments.
+
+
+
+
+[^1]: Note that Stephanie is a fictional character who is based on real experiences of many faculty and staff here at BYU-Idaho.

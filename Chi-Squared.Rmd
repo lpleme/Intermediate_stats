@@ -1,0 +1,143 @@
+---
+title: "Chi-Squared"
+output: html_document
+---
+
+```{r include=FALSE}
+library(mosaic)
+library(ResourceSelection)
+library(car)
+library(tidyverse)
+library(readr)
+library(pander)
+library(DT)
+library(MASS)
+```
+
+## Background
+
+The dataset labeled survey gives us data, that is both quantitative and qualitative, based on gender.
+
+## Question & Hypothesis
+
+This dataset gives us a lot of unanswered questions that can be answered by a chi-squared test of independence. We will be looking at the relationships via gender for smoking rate, exercise rate, and writing hand. We want to see if gender has a play in any of those categories, or if there's no association and they're independent. Our hypotheses will be written as such:
+
+
+Is smoking rate dependent on gender?
+
+$$
+  H_{01}:\ \text{Smoking rate and gender are independent.}
+$$
+$$
+  H_{a1}:\ \text{Smoking rate and gender are associated.}
+$$
+
+---
+
+Is exercise rate dependent on gender?
+
+$$
+  H_{01}:\ \text{Exercise rate and gender are independent.}
+$$
+
+$$
+  H_{a1}:\ \text{Exercise rate and gender are associated.}
+$$
+
+---
+
+Is writing hand dependent on gender?
+
+$$
+  H_{01}:\ \text{Writing hand and gender are independent.}
+$$
+
+$$
+  H_{a1}:\ \text{Writing hand and gender are associated.}
+$$
+
+
+## Data Analysis
+
+
+
+#### Smoking rate
+
+Chi-Squared of smoking rate for gender
+
+```{r echo=FALSE}
+smoke <- table(survey$Smoke, survey$Sex)
+pander(smoke)
+chi.smoke <- chisq.test(smoke)
+pander(chi.smoke$expected > 5)
+pander(chi.smoke)
+```
+
+All expected counts are above 5 so the requirments are met and the data is viable.
+
+---
+
+#### Exercise rate
+
+Chi-Squared of exercise rate for gender
+
+```{r echo=FALSE}
+exer <- table(survey$Exer, survey$Sex)
+pander(exer)
+chi.exer <- chisq.test(exer)
+pander(chi.exer$expected > 5)
+pander(chi.exer)
+```
+
+
+All expected counts are above 5 so the requirments are met and the data is viable.
+
+---
+
+#### Writing hand
+
+Chi-Squared of writing hand for gender
+
+```{r echo=FALSE}
+hand <- table(survey$W.Hnd, survey$Sex)
+pander(hand)
+chi.hand <- chisq.test(hand)
+pander(chi.hand$expected > 5)
+pander(chi.hand)
+```
+
+All expected counts are above 5 so the requirments are met and the data is viable.
+
+
+
+## Graphic
+
+```{r echo=FALSE}
+barplot(smoke, beside=TRUE, legend.text=TRUE, xlab="Gender", main="Gender vs Smoking Rate",
+        names.arg=c("Female","Male"), col = c("cadetblue", "aquamarine1", "cadetblue2", "cyan3"))
+```
+
+Our P-Value for smoking relationship was so high, $(p=0.3139)$, that we can see that there is no relationship between the smoking rate and a persons gender. Therefore we have insufficient evidence to reject the null hypothesis. We can confirm our P-Value by looking at the graph above. We see that there is a pretty constant relationship across the genders. This in turn shows us that there is no reversal relationship and thus they are independent. This means that gender does not have an effect on smoking rate.
+
+
+---
+
+```{r echo=FALSE}
+barplot(exer, beside=TRUE, legend.text=TRUE, xlab="Gender", main="Gender vs Exercise Rate",
+        names.arg=c("Female","Male"), col = c("cadetblue", "aquamarine1", "cadetblue2"))
+```
+
+Our P-Value was just above our significant value, $(p=0.05731)$, this means that there is no relationship between the exercise rate and a persons gender. We have insufficient evidence to reject the null hypothesis. Our findings can be confirmed by looking at the graph provided above. The plots seems to be consistent with no reversal relationship. This means that our data is indepent, so gender does not have an effect on exercise rate.
+
+---
+
+```{r echo=FALSE}
+barplot(hand, beside=TRUE, legend.text=TRUE, xlab="Gender", main="Gender vs Writing Hand",
+        names.arg=c("Female","Male"), col = c("cadetblue", "aquamarine1"))
+```
+
+The P-Value was so high, $(p=0.6274)$, that we have to state that there seems to be no relationship between the writing hand and a person gender. This means that we have insufficient evidence to reject the null hypothesis. By looking at the graph provided above, we see that the data is consistent across the board with no reverse relationship. This means that our data is independent, thus gender has no effect on writing hand.
+
+## Interpretation
+
+*Caption for each graph*

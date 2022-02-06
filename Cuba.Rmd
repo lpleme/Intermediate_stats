@@ -1,0 +1,21 @@
+---
+title: "Cuba"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r}
+library(mosaic)
+library(ResourceSelection)
+library(car)
+library(tidyverse)
+library(readr)
+library(pander)
+library(DT)
+
+Cuba <- read.table("../Data/Cuba.csv", sep="\t", header=TRUE)
+```
+
